@@ -30,7 +30,7 @@ class AnswerGenerator:
         advice_warning: str | None,
     ) -> ChatResponse:
         first = chunks[0]
-        if language == "zh":
+        if language.startswith("zh"):
             answer = first.summary_zh
             if advice_warning:
                 answer = f"{advice_warning}\n\n{answer}"
@@ -100,7 +100,7 @@ class AnswerGenerator:
         return ChatResponse.model_validate(parsed)
 
     def _load_system_prompt(self) -> str:
-        with open("backend/app/prompts/system_prompt.txt", "r", encoding="utf-8") as file:
+        with open("backend/app/prompts/system_prompt.md", "r", encoding="utf-8") as file:
             return file.read()
 
     def _format_context(self, chunks: list[KnowledgeChunk]) -> list[dict[str, object]]:

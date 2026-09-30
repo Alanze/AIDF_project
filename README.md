@@ -6,7 +6,7 @@ The project is designed for the AIDF take-home task. The focus is not a polished
 
 ## Features
 
-- Chat interface for English and Chinese questions.
+- Chat interface for English, Simplified Chinese, and Traditional Chinese questions.
 - Retrieval over structured insurance document chunks.
 - Grounded answers with page-level citations.
 - Guardrails for out-of-scope questions, missing evidence, and personalized financial advice.

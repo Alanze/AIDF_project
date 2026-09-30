@@ -3,6 +3,7 @@ import re
 
 
 CHINESE_RE = re.compile(r"[\u4e00-\u9fff]")
+TRADITIONAL_HINT_RE = re.compile(r"[萬與專業險靈選擇額價值後會費風險應該買]")
 
 INSURANCE_SCOPE_TERMS = {
     "premium",
@@ -73,7 +74,9 @@ class QuestionAssessment:
 
 def detect_language(text: str) -> str:
     if CHINESE_RE.search(text):
-        return "zh"
+        if TRADITIONAL_HINT_RE.search(text):
+            return "zh-Hant"
+        return "zh-Hans"
     return "en"
 
 
@@ -87,7 +90,7 @@ def assess_question(question: str) -> QuestionAssessment:
     in_scope = _contains_any(question, INSURANCE_SCOPE_TERMS)
     asks_personal_advice = _contains_any(question, PERSONAL_ADVICE_TERMS)
 
-    if language == "zh":
+    if language.startswith("zh"):
         out_of_scope_message = "这个问题超出了当前保险产品资料的范围。我可以解释 FLEXI-ULife Prime Saver 的保障、费用、风险、提款、缴费和除外责任等内容。"
         no_context_message = "我在提供的产品资料中没有找到足够依据回答这个问题。请参考正式保单文件，或咨询合资格的保险顾问。"
         warning = "我可以解释资料中的条款，但不能判断你是否应该购买、退保或选择某个保险方案。"
