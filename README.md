@@ -57,14 +57,33 @@ Backend health check:
 http://localhost:8000/health
 ```
 
+4. Verify the backend:
+
+```bash
+python scripts/verify_demo.py --mode http
+```
+
 ## Using A Local Open-Source Model
 
-The default `.env.example` uses `MODEL_PROVIDER=mock` so the demo can run without downloading a model. To use Ollama or another OpenAI-compatible runtime, set:
+The default `.env.example` uses `MODEL_PROVIDER=mock` so the demo can run without downloading a model or calling an external API.
+
+To use Qwen through DashScope, set:
+
+```env
+MODEL_PROVIDER=qwen
+MODEL_NAME=qwen-plus
+LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+LLM_API_KEY=sk-your-dashscope-key
+```
+
+See `docs/qwen_dashscope_setup.md` for details.
+
+To use Ollama or another OpenAI-compatible runtime, set:
 
 ```env
 MODEL_PROVIDER=openai_compatible
-OPENAI_BASE_URL=http://ollama:11434/v1
-OPENAI_API_KEY=ollama
+LLM_BASE_URL=http://ollama:11434/v1
+LLM_API_KEY=ollama
 MODEL_NAME=qwen2.5:7b-instruct
 ```
 
@@ -73,6 +92,10 @@ Then make sure the model is available in your runtime, for example:
 ```bash
 ollama pull qwen2.5:7b-instruct
 ```
+
+## More Run Commands
+
+See `docs/runbook.md` for Docker startup, local development startup, and verification harness commands.
 
 ## Architecture
 
