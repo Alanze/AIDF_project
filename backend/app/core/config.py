@@ -7,9 +7,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     model_provider: str = "mock"
-    model_name: str = "qwen2.5:7b-instruct"
-    openai_base_url: str = "http://localhost:11434/v1"
-    openai_api_key: str = "ollama"
+    model_name: str = "qwen-plus"
+    llm_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    llm_api_key: str = ""
+    openai_base_url: str = ""
+    openai_api_key: str = ""
 
     knowledge_base_path: str = "data/processed/chunks.json"
     top_k: int = 5
@@ -18,6 +20,14 @@ class Settings(BaseSettings):
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.backend_cors_origins.split(",") if origin.strip()]
+
+    @property
+    def effective_llm_base_url(self) -> str:
+        return self.llm_base_url or self.openai_base_url
+
+    @property
+    def effective_llm_api_key(self) -> str:
+        return self.llm_api_key or self.openai_api_key
 
 
 @lru_cache

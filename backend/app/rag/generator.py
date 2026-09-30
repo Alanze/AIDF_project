@@ -16,7 +16,7 @@ class AnswerGenerator:
         language: str,
         advice_warning: str | None,
     ) -> ChatResponse:
-        if settings.model_provider == "openai_compatible":
+        if settings.model_provider in {"openai_compatible", "qwen"}:
             response = await self._generate_with_openai_compatible(question, chunks, language, advice_warning)
         else:
             response = self._generate_mock(question, chunks, language, advice_warning)
@@ -81,8 +81,8 @@ class AnswerGenerator:
 
         async with httpx.AsyncClient(timeout=60) as client:
             result = await client.post(
-                f"{settings.openai_base_url.rstrip('/')}/chat/completions",
-                headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+                f"{settings.effective_llm_base_url.rstrip('/')}/chat/completions",
+                headers={"Authorization": f"Bearer {settings.effective_llm_api_key}"},
                 json={
                     "model": settings.model_name,
                     "messages": [
