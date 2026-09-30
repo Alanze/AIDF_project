@@ -29,7 +29,8 @@ class AnswerGenerator:
         language: str,
         advice_warning: str | None,
     ) -> ChatResponse:
-        first = chunks[0]
+        evidence_chunks = self._select_evidence_chunks(chunks)
+        first = evidence_chunks[0]
         if language.startswith("zh"):
             answer = first.summary_zh
             if advice_warning:
@@ -43,7 +44,8 @@ class AnswerGenerator:
             caveat_prefix = "Important:"
             followups = ["What are the limitations?", "What fees apply?", "What risks does the document mention?"]
 
-        caveats = [f"{caveat_prefix} {item}" for item in first.important_caveats]
+        caveat_items = self._localized_caveats(first, language)
+        caveats = [f"{caveat_prefix} {item}" for item in caveat_items]
         citations = [
             Citation(
                 source="FLEXI-ULife Prime Saver.pdf",
@@ -51,7 +53,7 @@ class AnswerGenerator:
                 section=chunk.section_title,
                 chunk_id=chunk.id,
             )
-            for chunk in chunks
+            for chunk in evidence_chunks
         ]
         return ChatResponse(
             answer=answer,
@@ -62,6 +64,14 @@ class AnswerGenerator:
             caveats=caveats,
             suggested_followups=followups,
         )
+
+    def _select_evidence_chunks(self, chunks: list[KnowledgeChunk]) -> list[KnowledgeChunk]:
+        return chunks[:1]
+
+    def _localized_caveats(self, chunk: KnowledgeChunk, language: str) -> list[str]:
+        if language.startswith("zh"):
+            return chunk.important_caveats_zh
+        return chunk.important_caveats
 
     async def _generate_with_openai_compatible(
         self,
@@ -114,6 +124,7 @@ class AnswerGenerator:
                 "summary_zh": chunk.summary_zh,
                 "source_text": chunk.source_text,
                 "important_caveats": chunk.important_caveats,
+                "important_caveats_zh": chunk.important_caveats_zh,
             }
             for chunk in chunks
         ]

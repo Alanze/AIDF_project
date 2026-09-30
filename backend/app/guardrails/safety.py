@@ -3,7 +3,8 @@ import re
 
 
 CHINESE_RE = re.compile(r"[\u4e00-\u9fff]")
-TRADITIONAL_HINT_RE = re.compile(r"[萬與專業險靈選擇額價值後會費風險應該買]")
+TRADITIONAL_HINT_RE = re.compile(r"[萬與專業險靈選擇額價後會費風險應該買現金保單繳]")
+SIMPLIFIED_HINT_RE = re.compile(r"[万与专业险灵选择额价后会费风险应该买现金保单缴]")
 
 INSURANCE_SCOPE_TERMS = {
     "premium",
@@ -21,6 +22,7 @@ INSURANCE_SCOPE_TERMS = {
     "unemployment",
     "charge",
     "fee",
+    "rate",
     "guaranteed",
     "flexi",
     "ulife",
@@ -36,6 +38,10 @@ INSURANCE_SCOPE_TERMS = {
     "提款",
     "退保",
     "利息",
+    "派息",
+    "派息率",
+    "保证",
+    "保證",
     "回报",
     "回報",
     "身故",
@@ -74,7 +80,9 @@ class QuestionAssessment:
 
 def detect_language(text: str) -> str:
     if CHINESE_RE.search(text):
-        if TRADITIONAL_HINT_RE.search(text):
+        traditional_hits = len(TRADITIONAL_HINT_RE.findall(text))
+        simplified_hits = len(SIMPLIFIED_HINT_RE.findall(text))
+        if traditional_hits > simplified_hits:
             return "zh-Hant"
         return "zh-Hans"
     return "en"

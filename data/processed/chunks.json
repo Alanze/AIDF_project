@@ -49,6 +49,7 @@
     "summary_zh": "供款扣除适用费用后会存入账户价值。资料册列出现时假设基本派息率为每年 4%，现时假设额外利息率为每年 0.25%；这些是假设值，并非保证，日后可能更改。",
     "source_text": "Current assumed base crediting interest rate: 4% p.a. Current assumed retrospective additional interest rate: 0.25% p.a. The current assumed rates are quoted as of the print date of this brochure in January 2022, and are not guaranteed. They are subject to change.",
     "important_caveats": ["The 4% and 0.25% rates are current assumed rates, not guaranteed rates.", "They are subject to change."],
+    "important_caveats_zh": ["4% 和 0.25% 是现时假设利率，并非保证利率。", "这些假设利率日后可能更改。"],
     "keywords": ["interest", "4%", "0.25%", "not guaranteed", "base crediting", "additional interest", "派息", "额外利息", "額外利息"]
   },
   {
@@ -62,6 +63,7 @@
     "summary_zh": "保单生效满 15 年或以上时，账户价值（包括已拨入保单的利息及额外回报）保证不会少于按每年 2.5% 派息率累积的金额。",
     "source_text": "When a Policy has been in force for 15 years or more, the total interest and Extra Bonus credited to the Policy will be such that the Account Value is guaranteed to have accumulated to at least an amount as if the interest rate credited had been 2.5% p.a.",
     "important_caveats": ["The guarantee applies only when the policy has been in force for 15 years or more."],
+    "important_caveats_zh": ["这项保证只适用于已生效满 15 年或以上的保单。"],
     "keywords": ["2.5%", "guaranteed interest", "15 years", "long-term", "保证利率", "保證利率"]
   },
   {
@@ -88,6 +90,7 @@
     "summary_zh": "保单支持增加定期或非定期供款、定期提款、部分提取现金价值，以及在累积足够现金价值时暂停缴付保费。",
     "source_text": "You can increase regular or unscheduled premiums at any time. When your Policy has accumulated a Cash Value, you can exercise the automatic periodic withdrawal option. You can withdraw a portion of the Cash Value at any time. When your Policy has accumulated a Cash Value, you may skip premium payments to cope with emergencies.",
     "important_caveats": ["Cash withdrawal, reducing premium amount, or skipping premium payments will affect Cash Value accumulation.", "Monthly charges remain deductible.", "If Cash Value is not sufficient to cover monthly charges, the Policy will lapse with zero value."],
+    "important_caveats_zh": ["提取现金、减少保费或暂停缴费都会影响现金价值累积。", "每月费用仍会继续扣除。", "如果现金价值不足以支付每月费用，保单可能会失效且没有任何价值。"],
     "keywords": ["skip premium", "withdrawal", "cash value", "periodic withdrawal", "premium payments", "暂停缴费", "暫停繳付保費", "提款"]
   },
   {
@@ -124,9 +127,10 @@
     "page": 14,
     "languages": ["en", "zh-Hant"],
     "summary_en": "Cash withdrawals, reducing premiums, or skipping premiums reduce Cash Value accumulation while monthly charges continue. If Cash Value cannot cover monthly charges and no premium is paid before the 31-day grace period ends, the policy lapses with zero value.",
-    "summary_zh": "提取现金、减低或暂停缴付保费会减少现金价值累积，但每月费用仍会扣除。如现金价值不足以支付每月费用，并且 31 天宽限期届满前仍未缴付保费，保单会终止且没有任何价值。",
+    "summary_zh": "这里的“现金价值不足”可以理解为：保单账户里累积的钱不够支付每月会继续扣除的费用。资料册说明，提取现金、减低或暂停缴付保费会减少现金价值累积；如果现金价值不足以支付每月费用，并且 31 天宽限期届满前仍未缴付保费，保单会终止且没有任何价值。",
     "source_text": "Cash withdrawals, reducing the premium amount, or skipping premium payments will reduce the accumulation of the Cash Value, while the monthly charges are still deductible. If the Cash Value is not sufficient to cover the monthly charges and no premiums are made before the end of the 31-day Grace Period, the Policy will lapse with zero value.",
-    "important_caveats": ["This is a key lapse risk and should be mentioned when discussing withdrawals or skipped premiums."],
+    "important_caveats": ["This is a key lapse risk when discussing withdrawals or skipped premiums."],
+    "important_caveats_zh": ["这是讨论提款、减少保费或暂停缴费时必须同时说明的保单失效风险。"],
     "keywords": ["lapse", "zero value", "31-day grace period", "monthly charges", "cash value", "保单失效", "保單終止"]
   },
   {

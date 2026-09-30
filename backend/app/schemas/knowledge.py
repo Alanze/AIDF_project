@@ -12,4 +12,5 @@ class KnowledgeChunk(BaseModel):
     summary_zh: str
     source_text: str
     important_caveats: list[str] = []
+    important_caveats_zh: list[str] = []
     keywords: list[str] = []
