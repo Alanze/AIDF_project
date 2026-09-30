@@ -3,8 +3,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    env_file:
-      - .env
+    environment:
+      - MODEL_PROVIDER=${MODEL_PROVIDER:-mock}
+      - MODEL_NAME=${MODEL_NAME:-qwen2.5:7b-instruct}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-http://ollama:11434/v1}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-ollama}
+      - KNOWLEDGE_BASE_PATH=${KNOWLEDGE_BASE_PATH:-data/processed/chunks.json}
+      - TOP_K=${TOP_K:-5}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
     ports:
       - "8000:8000"
     volumes:
