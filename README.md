@@ -1,51 +1,84 @@
 # InsureTutor Demo
 
-InsureTutor is a small bilingual RAG demo for answering questions about a specific insurance product document: `FLEXI-ULife Prime Saver`.
+InsureTutor is a bilingual RAG demo for answering questions about the insurance product document **FLEXI-ULife Prime Saver**.
 
-The project is designed for the AIDF take-home task. The focus is not a polished production app, but a clear implementation structure: document processing, grounded retrieval, safe answer generation, citations, and Docker-based reproducibility.
+This project was built for the AIDF take-home task. The goal is to demonstrate a clear engineering approach rather than a fully polished product: document grounding, citation-aware answers, guardrails, Docker reproducibility, and readable project structure.
 
-## Features
+## What This Demo Does
 
-- Chat interface for English, Simplified Chinese, and Traditional Chinese questions.
-- Retrieval over structured insurance document chunks.
-- Grounded answers with page-level citations.
-- Guardrails for out-of-scope questions, missing evidence, and personalized financial advice.
-- Fixed response schema from the backend.
-- OpenAI-compatible model adapter for local open-source models such as Ollama.
-- No-key `mock` mode for development and Docker smoke tests.
+- Provides a chat UI for English, Simplified Chinese, and Traditional Chinese questions.
+- Retrieves relevant insurance document chunks from `data/processed/chunks.json`.
+- Answers with page-level citations from `FLEXI-ULife Prime Saver.pdf`.
+- Uses guardrails for out-of-scope questions, missing evidence, and personalized insurance advice.
+- Supports a no-key `mock` mode for reproducible local testing.
+- Supports Qwen / DashScope through an OpenAI-compatible API.
+- Runs with Docker Compose.
 
-## Project Structure
+## Repository Structure
 
 ```text
-backend/                FastAPI backend
-  app/api/              HTTP routes
-  app/guardrails/       Safety and scope checks
-  app/ingestion/        PDF extraction and chunk-building helpers
-  app/prompts/          System prompt and answer contract
-  app/rag/              Knowledge loading, retrieval, generation
-  app/schemas/          Pydantic request/response models
-frontend/               Vite + React chat UI
-data/raw/               Source PDF
-data/processed/         Curated JSON knowledge chunks
-docs/                   Design notes and sample questions
-scripts/                Utility scripts
+backend/                  FastAPI backend
+  app/api/                HTTP routes
+  app/core/               Runtime configuration
+  app/guardrails/         Scope, safety, and response validation
+  app/ingestion/          PDF extraction helpers
+  app/prompts/            System prompt in Markdown
+  app/rag/                Knowledge loading, retrieval, and answer generation
+  app/schemas/            Pydantic request/response models
+
+frontend/                 Vite + React chat interface
+data/raw/                 Source PDF
+data/processed/           Curated JSON knowledge chunks and categories
+docs/                     Architecture notes, runbook, Qwen setup, sample questions
+scripts/                  Utility and verification scripts
+Dockerfile                Backend container image
+docker-compose.yml        Backend + frontend Docker orchestration
+.env.example              Environment variable template
 ```
 
-## Quick Start
+## Prerequisites
 
-1. Copy environment variables:
+- Git
+- Docker Desktop with the Linux engine running
+- Python 3.11+ only if you want to run the verification script from the host
+- Node.js only if you want to run the frontend outside Docker
+
+The Docker path is the recommended path for review because it matches the assignment requirement.
+
+## Reproduce With Docker
+
+Clone the repository and enter the project root:
+
+```bash
+git clone https://github.com/Alanze/AIDF_project.git
+cd AIDF_project
+```
+
+Create a local environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Run with Docker:
+On Windows PowerShell, the equivalent command is:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+For the simplest reproducible run, keep:
+
+```env
+MODEL_PROVIDER=mock
+```
+
+Then start the demo:
 
 ```bash
 docker compose up --build
 ```
 
-3. Open the app:
+Open the frontend:
 
 ```text
 http://localhost:5173
@@ -57,84 +90,137 @@ Backend health check:
 http://localhost:8000/health
 ```
 
-4. Verify the backend:
+## Verify The Demo
+
+After Docker is running, execute:
 
 ```bash
 python scripts/verify_demo.py --mode http
 ```
 
-## Using A Local Open-Source Model
+Expected result:
 
-The default `.env.example` uses `MODEL_PROVIDER=mock` so the demo can run without downloading a model or calling an external API.
+```text
+OK: Can I skip premium payments?
+OK: 4% 派息率是不是保证的？
+Verification passed.
+```
 
-To use Qwen through DashScope, set:
+You can also verify manually in the UI with questions such as:
+
+```text
+Can I skip premium payments?
+如果现金价值不足会怎样？
+4% 派息率是不是保证的？
+Should I buy this policy?
+```
+
+Expected behavior:
+
+- In-scope answers include citations.
+- Chinese questions are answered in Chinese.
+- Non-guaranteed rates are described as non-guaranteed.
+- Personalized buy/surrender advice is not provided.
+
+## Configure Qwen / DashScope
+
+The demo can call Qwen models through Alibaba Cloud Model Studio / DashScope using the OpenAI-compatible endpoint.
+
+Update `.env`:
 
 ```env
 MODEL_PROVIDER=qwen
 MODEL_NAME=qwen-plus
 LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-LLM_API_KEY=sk-your-dashscope-key
+LLM_API_KEY=sk-your-dashscope-api-key
 ```
 
-See `docs/qwen_dashscope_setup.md` for details.
+Do not commit `.env`. The repository only commits `.env.example`.
 
-To use Ollama or another OpenAI-compatible runtime, set:
-
-```env
-MODEL_PROVIDER=openai_compatible
-LLM_BASE_URL=http://ollama:11434/v1
-LLM_API_KEY=ollama
-MODEL_NAME=qwen2.5:7b-instruct
-```
-
-Then make sure the model is available in your runtime, for example:
+Restart the containers after changing `.env`:
 
 ```bash
-ollama pull qwen2.5:7b-instruct
+docker compose down
+docker compose up --build
 ```
 
-## More Run Commands
+More details are documented in `docs/qwen_dashscope_setup.md`.
 
-See `docs/runbook.md` for Docker startup, local development startup, and verification harness commands.
+## Environment Variables
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `MODEL_PROVIDER` | Selects answer generation mode | `mock`, `qwen`, `openai_compatible` |
+| `MODEL_NAME` | Model name sent to the provider | `qwen-plus` |
+| `LLM_BASE_URL` | OpenAI-compatible API base URL | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
+| `LLM_API_KEY` | Provider API key | `sk-...` |
+| `KNOWLEDGE_BASE_PATH` | Path to processed knowledge chunks | `data/processed/chunks.json` |
+| `TOP_K` | Number of chunks retrieved before answer generation | `5` |
+| `BACKEND_CORS_ORIGINS` | Allowed frontend origins | `http://localhost:5173,http://127.0.0.1:5173` |
+| `VITE_API_BASE_URL` | Frontend API base URL | `http://localhost:8000` |
+
+## Local Development Without Docker
+
+Docker is preferred, but the services can also run locally.
+
+Backend:
+
+```bash
+pip install -r backend/requirements.txt
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
 
 ## Architecture
 
-The user question goes through this pipeline:
+The runtime pipeline is:
 
-1. Detect the user's language.
-2. Run guardrails for scope and unsafe personalized advice.
-3. Retrieve relevant knowledge chunks from `data/processed/chunks.json`.
-4. Build a prompt containing only retrieved evidence.
-5. Generate a schema-shaped answer.
-6. Validate the answer and return citations to the UI.
+1. Receive a user question through the frontend.
+2. Detect the user's language.
+3. Apply scope and safety guardrails.
+4. Retrieve relevant chunks from `data/processed/chunks.json`.
+5. Build a grounded prompt using `backend/app/prompts/system_prompt.md`.
+6. Generate a schema-shaped answer.
+7. Return the answer, caveats, and citations to the UI.
 
-The model is not treated as the source of truth. The insurance PDF-derived knowledge chunks are the source of truth.
+The model is not treated as the source of truth. The insurance document chunks are the source of truth.
 
 ## Guardrail Principles
 
-InsureTutor can explain product features, terms, fees, risks, exclusions, and document wording. It must not:
+InsureTutor can explain product features, document wording, benefits, risks, fees, exclusions, and conditions. It must not:
 
-- Invent benefits, rates, guarantees, fees, eligibility, or exclusions.
+- Invent benefits, rates, guarantees, fees, eligibility, exclusions, or policy terms.
 - Recommend whether a user should buy, surrender, cancel, or choose the plan.
-- Treat non-guaranteed rates as guaranteed.
-- Answer unrelated questions as if they were in the insurance document.
-- Provide legal, tax, medical, or personalized financial advice.
+- Treat assumed rates as guaranteed.
+- Answer unrelated questions as if they were supported by the document.
+- Provide personalized financial, legal, tax, medical, or insurance advice.
 
-If the provided document does not contain enough evidence, the assistant should say so clearly and suggest checking the policy document or consulting a qualified professional.
+If the retrieved context is insufficient, the assistant should say so and suggest referring to the formal policy document or a qualified professional.
 
 ## Current Limitations
 
-- The processed knowledge base is a curated seed set rather than a complete production-grade parse of every PDF paragraph.
-- Retrieval currently uses transparent lexical scoring over structured JSON. The project is ready for a vector store upgrade.
-- The demo is based on a product brochure and does not replace the full policy document.
+- The knowledge base is a curated seed set, not a full production parse of every PDF paragraph.
+- Retrieval currently uses transparent lexical scoring over structured JSON.
+- Page-level citation is used for this demo; paragraph-level citation would be a production improvement.
+- The demo is based on a product brochure and does not replace the formal policy document.
 
-## Suggested Evaluation Questions
+## Useful Documentation
 
-- Can I skip premium payments?
-- What is the guaranteed interest rate?
-- What happens if the cash value is not enough to cover monthly charges?
-- Is the extra bonus guaranteed?
-- What are the death benefit options?
-- Should I buy this policy for retirement?
-- 这份计划可以暂停缴费吗？
-- 额外回报是不是保证的？
+- `docs/runbook.md` - startup, verification, and operational commands
+- `docs/qwen_dashscope_setup.md` - Qwen / DashScope setup
+- `docs/architecture.md` - architecture notes
+- `docs/design_decisions.md` - key engineering decisions
+- `docs/sample_questions.md` - suggested evaluation questions
