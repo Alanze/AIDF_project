@@ -19,18 +19,28 @@ async def chat(request: ChatRequest) -> ChatResponse:
     assessment = assess_question(request.question)
 
     if assessment.scope_status == "out_of_scope":
+        caveat = (
+            "本回答仅限于已提供的 FLEXI-ULife Prime Saver 产品资料。"
+            if assessment.language.startswith("zh")
+            else "This answer is limited to the supplied FLEXI-ULife Prime Saver document."
+        )
+        followups = (
+            ["询问缴费弹性", "询问身故保障选择", "询问除外责任或风险"]
+            if assessment.language.startswith("zh")
+            else [
+                "Ask about premium flexibility",
+                "Ask about death benefit options",
+                "Ask about exclusions or risks",
+            ]
+        )
         return ChatResponse(
             answer=assessment.message,
             language=assessment.language,
             confidence="high",
             scope_status="out_of_scope",
             citations=[],
-            caveats=["This answer is limited to the supplied FLEXI-ULife Prime Saver document."],
-            suggested_followups=[
-                "Ask about premium flexibility",
-                "Ask about death benefit options",
-                "Ask about exclusions or risks",
-            ],
+            caveats=[caveat],
+            suggested_followups=followups,
         )
 
     chunks = retriever.search(request.question, top_k=settings.top_k)
