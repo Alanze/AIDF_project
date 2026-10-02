@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.case_understanding.extractor import extract_user_case
 from app.core.config import settings
 from app.guardrails.safety import assess_question
 from app.rag.generator import AnswerGenerator
@@ -17,6 +18,8 @@ generator = AnswerGenerator()
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     assessment = assess_question(request.question)
+    user_case = extract_user_case(request.question)
+    case_context = user_case if user_case.has_case_context else None
 
     if assessment.scope_status == "out_of_scope":
         caveat = (
@@ -38,18 +41,21 @@ async def chat(request: ChatRequest) -> ChatResponse:
             language=assessment.language,
             confidence="high",
             scope_status="out_of_scope",
+            case_context=case_context,
             citations=[],
             caveats=[caveat],
             suggested_followups=followups,
         )
 
     chunks = retriever.search(request.question, top_k=settings.top_k)
+    chunks = retriever.expand_for_case(chunks, case_context)
     if not chunks:
         return ChatResponse(
             answer=assessment.not_enough_context_message,
             language=assessment.language,
             confidence="low",
             scope_status="insufficient_context",
+            case_context=case_context,
             citations=[],
             caveats=["No relevant evidence was retrieved from the supplied document."],
             suggested_followups=[],
@@ -60,4 +66,5 @@ async def chat(request: ChatRequest) -> ChatResponse:
         chunks=chunks,
         language=assessment.language,
         advice_warning=assessment.personal_advice_warning,
+        user_case=case_context,
     )

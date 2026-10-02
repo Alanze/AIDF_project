@@ -1,6 +1,7 @@
 import re
 
 from app.rag.knowledge_base import KnowledgeBase
+from app.case_understanding.schemas import UserCase
 from app.schemas.knowledge import KnowledgeChunk
 
 
@@ -95,3 +96,34 @@ class Retriever:
         minimum_score = max(2, best_score * 0.45)
         filtered = [(score, chunk) for score, chunk in scored if score >= minimum_score]
         return [chunk for _, chunk in filtered[:top_k]]
+
+    def expand_for_case(self, chunks: list[KnowledgeChunk], user_case: UserCase | None, limit: int = 8) -> list[KnowledgeChunk]:
+        if not user_case or not user_case.has_case_context:
+            return chunks
+
+        preferred_categories = self._preferred_categories(user_case.action_considered)
+        if not preferred_categories:
+            return chunks
+
+        expanded = list(chunks)
+        existing_ids = {chunk.id for chunk in expanded}
+
+        for chunk in self.knowledge_base.chunks:
+            if len(expanded) >= limit:
+                break
+            if chunk.id in existing_ids:
+                continue
+            if chunk.category in preferred_categories:
+                expanded.append(chunk)
+                existing_ids.add(chunk.id)
+
+        return expanded
+
+    def _preferred_categories(self, action: str | None) -> list[str]:
+        if action in {"skip_premium", "withdraw_cash", "surrender"}:
+            return ["financial_flexibility", "risks_and_disclosures", "fees_and_charges"]
+        if action == "buy":
+            return ["product_overview", "benefit_options", "risks_and_disclosures", "fees_and_charges"]
+        if action == "claim":
+            return ["claims_and_cancellation", "extra_protection", "exclusions"]
+        return []

@@ -3,7 +3,8 @@ import json
 import httpx
 
 from app.core.config import settings
-from app.guardrails.validators import ensure_grounded_response
+from app.guardrails.validators import ensure_citation_consistency, ensure_grounded_response
+from app.case_understanding.schemas import UserCase
 from app.schemas.chat import ChatResponse, Citation
 from app.schemas.knowledge import KnowledgeChunk
 
@@ -15,11 +16,14 @@ class AnswerGenerator:
         chunks: list[KnowledgeChunk],
         language: str,
         advice_warning: str | None,
+        user_case: UserCase | None = None,
     ) -> ChatResponse:
         if settings.model_provider in {"openai_compatible", "qwen"}:
-            response = await self._generate_with_openai_compatible(question, chunks, language, advice_warning)
+            response = await self._generate_with_openai_compatible(question, chunks, language, advice_warning, user_case)
         else:
-            response = self._generate_mock(question, chunks, language, advice_warning)
+            response = self._generate_mock(question, chunks, language, advice_warning, user_case)
+        response.case_context = user_case
+        response = ensure_citation_consistency(response, chunks)
         return ensure_grounded_response(response)
 
     def _generate_mock(
@@ -28,6 +32,7 @@ class AnswerGenerator:
         chunks: list[KnowledgeChunk],
         language: str,
         advice_warning: str | None,
+        user_case: UserCase | None,
     ) -> ChatResponse:
         evidence_chunks = self._select_evidence_chunks(chunks)
         first = evidence_chunks[0]
@@ -60,6 +65,7 @@ class AnswerGenerator:
             language=language,
             confidence="medium",
             scope_status="in_scope",
+            case_context=user_case,
             citations=citations,
             caveats=caveats,
             suggested_followups=followups,
@@ -79,6 +85,7 @@ class AnswerGenerator:
         chunks: list[KnowledgeChunk],
         language: str,
         advice_warning: str | None,
+        user_case: UserCase | None,
     ) -> ChatResponse:
         system_prompt = self._load_system_prompt()
         context = self._format_context(chunks)
@@ -86,6 +93,7 @@ class AnswerGenerator:
             "question": question,
             "language": language,
             "advice_warning": advice_warning,
+            "user_case": user_case.model_dump(exclude_none=True) if user_case else None,
             "retrieved_context": context,
         }
 
