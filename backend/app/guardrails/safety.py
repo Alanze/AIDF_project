@@ -28,6 +28,10 @@ INSURANCE_SCOPE_TERMS = {
     "ulife",
     "保费",
     "保費",
+    "投保",
+    "方案",
+    "计划",
+    "計劃",
     "缴费",
     "繳費",
     "缴付",
@@ -66,6 +70,7 @@ PERSONAL_ADVICE_TERMS = {
     "should i cancel",
     "should i surrender",
     "recommend",
+    "advice",
     "best for me",
     "suitable for me",
     "我该买",
@@ -76,6 +81,12 @@ PERSONAL_ADVICE_TERMS = {
     "應不應該",
     "要不要买",
     "要不要買",
+    "建议",
+    "建議",
+    "给我一些建议",
+    "給我一些建議",
+    "有什么建议",
+    "有什麼建議",
 }
 
 
@@ -119,7 +130,7 @@ def assess_question(question: str) -> QuestionAssessment:
 
     return QuestionAssessment(
         language=language,
-        scope_status="in_scope" if in_scope or asks_personal_advice else "out_of_scope",
+        scope_status="in_scope" if in_scope else "out_of_scope",
         message=out_of_scope_message,
         not_enough_context_message=no_context_message,
         personal_advice_warning=warning if asks_personal_advice else None,

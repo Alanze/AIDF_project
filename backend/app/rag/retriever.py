@@ -105,8 +105,13 @@ class Retriever:
         if not preferred_categories:
             return chunks
 
-        expanded = list(chunks)
-        existing_ids = {chunk.id for chunk in expanded}
+        expanded: list[KnowledgeChunk] = []
+        existing_ids: set[str] = set()
+
+        for chunk in chunks:
+            if chunk.category in preferred_categories:
+                expanded.append(chunk)
+                existing_ids.add(chunk.id)
 
         for chunk in self.knowledge_base.chunks:
             if len(expanded) >= limit:
@@ -117,10 +122,17 @@ class Retriever:
                 expanded.append(chunk)
                 existing_ids.add(chunk.id)
 
+        for chunk in chunks:
+            if len(expanded) >= limit:
+                break
+            if chunk.id not in existing_ids:
+                expanded.append(chunk)
+                existing_ids.add(chunk.id)
+
         return expanded
 
     def _preferred_categories(self, action: str | None) -> list[str]:
-        if action in {"skip_premium", "withdraw_cash", "surrender"}:
+        if action in {"skip_premium", "withdraw_cash", "surrender", "switch_plan"}:
             return ["financial_flexibility", "risks_and_disclosures", "fees_and_charges"]
         if action == "buy":
             return ["product_overview", "benefit_options", "risks_and_disclosures", "fees_and_charges"]

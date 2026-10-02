@@ -1,6 +1,7 @@
 import json
 
 import httpx
+from pydantic import ValidationError
 
 from app.core.config import settings
 from app.guardrails.validators import ensure_citation_consistency, ensure_grounded_response
@@ -19,12 +20,52 @@ class AnswerGenerator:
         user_case: UserCase | None = None,
     ) -> ChatResponse:
         if settings.model_provider in {"openai_compatible", "qwen"}:
-            response = await self._generate_with_openai_compatible(question, chunks, language, advice_warning, user_case)
+            try:
+                response = await self._generate_with_openai_compatible(question, chunks, language, advice_warning, user_case)
+            except (httpx.RequestError, httpx.HTTPStatusError, json.JSONDecodeError, KeyError, ValidationError):
+                response = self._provider_error_response(chunks, language, user_case)
         else:
             response = self._generate_mock(question, chunks, language, advice_warning, user_case)
         response.case_context = user_case
         response = ensure_citation_consistency(response, chunks)
         return ensure_grounded_response(response)
+
+    def _provider_error_response(
+        self,
+        chunks: list[KnowledgeChunk],
+        language: str,
+        user_case: UserCase | None,
+    ) -> ChatResponse:
+        evidence_chunks = chunks[:3]
+        citations = [
+            Citation(
+                source="FLEXI-ULife Prime Saver.pdf",
+                page=chunk.page,
+                section=chunk.section_title,
+                chunk_id=chunk.id,
+            )
+            for chunk in evidence_chunks
+        ]
+
+        if language.startswith("zh"):
+            answer = "模型服务暂时不可用，当前无法生成完整回答。系统已经完成资料检索，你可以稍后重试；如果问题涉及个人保单决策，请参考正式保单文件或咨询合资格保险顾问。"
+            caveats = ["Qwen/DashScope API 暂时无法连接或返回格式异常，因此没有使用模型生成最终答案。"]
+            followups = ["稍后重试同一问题", "先询问暂停缴费的条款风险", "检查 /health 中的模型配置"]
+        else:
+            answer = "The model service is temporarily unavailable, so a complete generated answer could not be produced. The system retrieved relevant document sources; please retry later or consult the formal policy document or a qualified insurance professional for case-specific decisions."
+            caveats = ["The Qwen/DashScope API could not be reached or returned an invalid response, so the final model answer was not generated."]
+            followups = ["Retry the same question later", "Ask about premium flexibility risks", "Check model configuration in /health"]
+
+        return ChatResponse(
+            answer=answer,
+            language=language,
+            confidence="low",
+            scope_status="insufficient_context",
+            case_context=user_case,
+            citations=citations,
+            caveats=caveats,
+            suggested_followups=followups,
+        )
 
     def _generate_mock(
         self,

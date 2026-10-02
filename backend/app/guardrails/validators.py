@@ -4,7 +4,7 @@ from app.schemas.chat import ChatResponse, Citation
 from app.schemas.knowledge import KnowledgeChunk
 
 
-PAGE_REF_RE = re.compile(r"(?:p\.|page\s*|第)\s*(\d{1,2})\s*(?:页|頁)?", re.IGNORECASE)
+PAGE_REF_RE = re.compile(r"(?:p\.?|page\s*|第)\s*(\d{1,2})\s*(?:页|頁)?", re.IGNORECASE)
 
 
 def ensure_grounded_response(response: ChatResponse) -> ChatResponse:

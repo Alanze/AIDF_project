@@ -15,10 +15,11 @@ POLICY_YEAR_PATTERNS = [
 ]
 
 ACTION_TERMS = {
-    "skip_premium": ["暂停缴费", "暫停繳費", "暂停缴付保费", "暫停繳付保費", "停缴", "停繳", "skip premium"],
+    "skip_premium": ["暂停缴费", "暫停繳費", "暂停缴付保费", "暫停繳付保費", "暂停投保", "暫停投保", "停缴", "停繳", "skip premium"],
     "withdraw_cash": ["提款", "提取现金", "提取現金", "withdraw", "cash withdrawal"],
     "surrender": ["退保", "surrender", "terminate policy", "cancel policy"],
-    "buy": ["购买", "購買", "投保", "buy", "purchase"],
+    "switch_plan": ["改用其他方案", "换方案", "換方案", "转换方案", "轉換方案", "switch plan", "change plan"],
+    "buy": ["购买", "購買", "准备投保", "打算投保", "buy", "purchase"],
     "claim": ["索赔", "索償", "claim"],
 }
 
@@ -32,8 +33,15 @@ ADVICE_TERMS = [
     "適合我",
     "建议我",
     "建議我",
+    "建议",
+    "建議",
+    "给我一些建议",
+    "給我一些建議",
+    "有什么建议",
+    "有什麼建議",
     "should i",
     "recommend",
+    "advice",
     "suitable for me",
 ]
 
@@ -158,6 +166,8 @@ def _missing_information(action: str | None, cash_value_known: bool | None, prem
             missing.append("premium_status")
         missing.append("monthly_charges")
         missing.append("formal_policy_terms")
+    elif action == "switch_plan":
+        missing.extend(["current_cash_value", "monthly_charges", "alternative_plan_terms", "formal_policy_terms"])
     elif action == "buy":
         missing.extend(["financial_goals", "risk_tolerance", "formal_advice"])
     return missing
