@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.case_understanding.extractor import extract_user_case
 from app.core.config import settings
 from app.guardrails.safety import assess_question
+from app.observability.run_logger import log_chat_run
 from app.rag.generator import AnswerGenerator
 from app.rag.knowledge_base import KnowledgeBase
 from app.rag.retriever import Retriever
@@ -20,6 +21,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
     assessment = assess_question(request.question)
     user_case = extract_user_case(request.question)
     case_context = user_case if user_case.has_case_context else None
+    chunks = []
 
     if assessment.scope_status == "out_of_scope":
         caveat = (
@@ -36,7 +38,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 "Ask about exclusions or risks",
             ]
         )
-        return ChatResponse(
+        response = ChatResponse(
             answer=assessment.message,
             language=assessment.language,
             confidence="high",
@@ -46,11 +48,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
             caveats=[caveat],
             suggested_followups=followups,
         )
+        log_chat_run(question=request.question, assessment=assessment, chunks=chunks, response=response)
+        return response
 
     chunks = retriever.search(request.question, top_k=settings.top_k)
     chunks = retriever.expand_for_case(chunks, case_context)
     if not chunks:
-        return ChatResponse(
+        response = ChatResponse(
             answer=assessment.not_enough_context_message,
             language=assessment.language,
             confidence="low",
@@ -60,11 +64,15 @@ async def chat(request: ChatRequest) -> ChatResponse:
             caveats=["No relevant evidence was retrieved from the supplied document."],
             suggested_followups=[],
         )
+        log_chat_run(question=request.question, assessment=assessment, chunks=chunks, response=response)
+        return response
 
-    return await generator.generate(
+    response = await generator.generate(
         question=request.question,
         chunks=chunks,
         language=assessment.language,
         advice_warning=assessment.personal_advice_warning,
         user_case=case_context,
     )
+    log_chat_run(question=request.question, assessment=assessment, chunks=chunks, response=response)
+    return response

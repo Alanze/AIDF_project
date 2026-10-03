@@ -15,6 +15,8 @@ class Settings(BaseSettings):
 
     knowledge_base_path: str = "data/processed/chunks.json"
     top_k: int = 5
+    run_log_dir: str = "run"
+    run_log_enabled: bool = True
     backend_cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     @property

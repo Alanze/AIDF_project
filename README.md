@@ -122,6 +122,22 @@ Expected behavior:
 - Non-guaranteed rates are described as non-guaranteed.
 - Personalized buy/surrender advice is not provided.
 
+## Local Run Logs
+
+Each `/api/chat` request writes a local audit record under `run/`.
+
+```text
+run/
+  YYYY-MM-DD/
+    HHMMSS_<request-id>/
+      meta.json
+      request.json
+      retrieval.json
+      response.json
+```
+
+These files are for local testing and manual review only. The `run/` directory is ignored by Git and should not be committed. The logs include the user question, case extraction, retrieved chunks, citations, and final response metadata. API keys are never written to these logs.
+
 ## Configure Qwen / DashScope
 
 The demo can call Qwen models through Alibaba Cloud Model Studio / DashScope using the OpenAI-compatible endpoint.
